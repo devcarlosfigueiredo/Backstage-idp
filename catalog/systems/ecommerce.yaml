@@ -1,0 +1,47 @@
+---
+# ─── Sistema: E-commerce ──────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: ecommerce
+  title: "E-commerce Platform"
+  description: >
+    Plataforma de e-commerce — conjunto de serviços que suportam
+    catálogo de produtos, carrinho, pagamentos, notificações e gestão de tarefas.
+  tags:
+    - ecommerce
+    - production
+    - core-business
+  links:
+    - url: https://ecommerce.empresa.com
+      title: "🌐 Loja Online"
+      icon: web
+    - url: https://grafana.empresa.com/d/ecommerce-overview
+      title: "📊 Dashboard do Sistema"
+      icon: dashboard
+    - url: https://wiki.empresa.com/ecommerce
+      title: "📖 Wiki"
+      icon: book
+
+spec:
+  owner: team-backend
+  domain: platform
+
+---
+# ─── Sistema: Internal Platform ───────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: internal-platform
+  title: "Internal Developer Platform"
+  description: >
+    Conjunto de ferramentas e serviços mantidos pela equipa de Platform Engineering
+    para suporte a todos os developers — portal Backstage, CI/CD, observabilidade.
+  tags:
+    - platform
+    - devops
+    - internal
+
+spec:
+  owner: team-platform
+  domain: platform

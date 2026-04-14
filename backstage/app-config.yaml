@@ -1,0 +1,148 @@
+app:
+  title: Platform Portal
+  baseUrl: http://localhost:3000
+
+organization:
+  name: "Minha Empresa"
+
+backend:
+  baseUrl: http://localhost:7007
+  listen:
+    port: 7007
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+  cache:
+    store: memory
+
+# ─── Integração GitHub ────────────────────────────────────────────────────────
+integrations:
+  github:
+    - host: github.com
+      token: ${GITHUB_TOKEN}
+
+# ─── Proxy para serviços externos ────────────────────────────────────────────
+proxy:
+  '/prometheus/api':
+    target: ${PROMETHEUS_URL}
+    changeOrigin: true
+  '/grafana/api':
+    target: ${GRAFANA_URL}
+    headers:
+      Authorization: Bearer ${GRAFANA_TOKEN}
+  '/argocd/api':
+    target: ${ARGOCD_URL}
+    changeOrigin: true
+    secure: false
+    headers:
+      Cookie: ${ARGOCD_AUTH_TOKEN}
+
+# ─── TechDocs ────────────────────────────────────────────────────────────────
+techdocs:
+  builder: 'local'
+  generator:
+    runIn: 'local'
+  publisher:
+    type: 'local'
+
+# ─── Auth ─────────────────────────────────────────────────────────────────────
+auth:
+  environment: development
+  providers:
+    github:
+      development:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+
+# ─── Scaffolder ───────────────────────────────────────────────────────────────
+scaffolder:
+  defaultAuthor:
+    name: Platform Bot
+    email: platform@empresa.com
+  defaultCommitMessage: "chore: scaffold from Platform Portal"
+
+# ─── Catálogo ─────────────────────────────────────────────────────────────────
+catalog:
+  import:
+    entityFilename: catalog-info.yaml
+    pullRequestBranchName: backstage-integration
+  rules:
+    - allow: [Component, System, API, Resource, Location, Group, User, Template, Domain]
+  locations:
+    # Serviços
+    - type: file
+      target: ../../catalog/services/taskflow-api.yaml
+    - type: file
+      target: ../../catalog/services/flask-api.yaml
+
+    # Templates de scaffolding
+    - type: file
+      target: ../../catalog/templates/python-microservice/template.yaml
+    - type: file
+      target: ../../catalog/templates/terraform-module/template.yaml
+
+    # Organização: grupos, sistemas, domínios
+    - type: file
+      target: ../../catalog/groups/team-platform.yaml
+    - type: file
+      target: ../../catalog/systems/ecommerce.yaml
+
+    # Auto-discovery de repositórios GitHub (produção)
+    # - type: github-discovery
+    #   target: https://github.com/minha-org/*
+
+# ─── Kubernetes Plugin ────────────────────────────────────────────────────────
+kubernetes:
+  serviceLocatorMethod:
+    type: 'multiTenant'
+  clusterLocatorMethods:
+    - type: 'config'
+      clusters:
+        - url: ${K8S_API_URL}
+          name: production
+          authProvider: serviceAccount
+          skipTLSVerify: false
+          serviceAccountToken: ${K8S_SERVICE_ACCOUNT_TOKEN}
+          dashboardUrl: ${K8S_DASHBOARD_URL}
+          dashboardApp: kubernetes
+
+# ─── Plugins de Métricas Personalizados ───────────────────────────────────────
+customMetrics:
+  prometheusUrl: ${PROMETHEUS_URL}
+  grafanaUrl: ${GRAFANA_URL}
+
+costInsights:
+  engineerCost: 200000  # custo anual por engenheiro (USD)
+  products:
+    computeEngine:
+      name: Compute Engine
+      icon: compute
+    cloudStorage:
+      name: Cloud Storage
+      icon: storage
+  metrics:
+    dailyCost:
+      name: Total Daily Cost
+      default: true
+    computeCost:
+      name: Compute Cost
+    storageCost:
+      name: Storage Cost
+
+# ─── Search ───────────────────────────────────────────────────────────────────
+search:
+  collators:
+    'default':
+      schedule:
+        frequency: { minutes: 10 }
+        timeout: { minutes: 15 }

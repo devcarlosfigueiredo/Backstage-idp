@@ -1,0 +1,133 @@
+---
+# ─── Domínio ──────────────────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: platform
+  title: "Platform Domain"
+  description: "Domínio responsável por infraestrutura, DevOps e developer experience"
+spec:
+  owner: team-platform
+
+---
+# ─── Grupo: Platform Engineering ─────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-platform
+  title: "Platform Engineering"
+  description: "Equipa responsável pela Internal Developer Platform, infraestrutura e developer experience"
+  links:
+    - url: https://confluence.empresa.com/team-platform
+      title: "Confluence"
+      icon: dashboard
+    - url: https://slack.empresa.com/channels/platform-eng
+      title: "#platform-eng (Slack)"
+      icon: chat
+spec:
+  type: team
+  profile:
+    displayName: "Platform Engineering"
+    email: platform@empresa.com
+    picture: https://avatars.githubusercontent.com/u/0
+  parent: engineering
+  children: []
+  members:
+    - alice.silva
+    - bob.ferreira
+    - carlos.mendes
+
+---
+# ─── Grupo: Backend ───────────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-backend
+  title: "Backend Engineering"
+  description: "Equipa de serviços backend e APIs"
+spec:
+  type: team
+  profile:
+    displayName: "Backend Engineering"
+    email: backend@empresa.com
+  parent: engineering
+  children: []
+  members:
+    - diana.costa
+    - eduardo.santos
+
+---
+# ─── Grupo: Frontend ──────────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: team-frontend
+  title: "Frontend Engineering"
+  description: "Equipa de aplicações web e mobile"
+spec:
+  type: team
+  profile:
+    displayName: "Frontend Engineering"
+    email: frontend@empresa.com
+  parent: engineering
+  children: []
+  members:
+    - filipa.rodrigues
+
+---
+# ─── Grupo Raiz: Engineering ──────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: engineering
+  title: "Engineering"
+  description: "Toda a engenharia"
+spec:
+  type: department
+  profile:
+    displayName: Engineering
+    email: eng@empresa.com
+  children:
+    - team-platform
+    - team-backend
+    - team-frontend
+
+---
+# ─── Utilizadores ────────────────────────────────────────────────────────────
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: alice.silva
+  title: "Alice Silva"
+spec:
+  profile:
+    displayName: Alice Silva
+    email: alice.silva@empresa.com
+    picture: https://i.pravatar.cc/150?u=alice
+  memberOf: [team-platform]
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: bob.ferreira
+  title: "Bob Ferreira"
+spec:
+  profile:
+    displayName: Bob Ferreira
+    email: bob.ferreira@empresa.com
+    picture: https://i.pravatar.cc/150?u=bob
+  memberOf: [team-platform]
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: carlos.mendes
+  title: "Carlos Mendes"
+spec:
+  profile:
+    displayName: Carlos Mendes
+    email: carlos.mendes@empresa.com
+    picture: https://i.pravatar.cc/150?u=carlos
+  memberOf: [team-platform]

@@ -1,0 +1,190 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: python-microservice
+  title: "🐍 Python Microservice (FastAPI)"
+  description: >
+    Cria um novo microserviço Python com FastAPI, Docker, GitHub Actions CI/CD,
+    TechDocs, Dockerfile multi-stage, testes com pytest e registo automático
+    no catálogo do Platform Portal — tudo em 1 clique.
+  tags:
+    - python
+    - fastapi
+    - docker
+    - github-actions
+    - recommended
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+
+spec:
+  owner: team-platform
+  type: service
+
+  # ─── Parâmetros do formulário no portal ──────────────────────────────────────
+  parameters:
+    - title: "📦 Informações do Serviço"
+      required: [name, description, owner]
+      properties:
+        name:
+          title: Nome do Serviço
+          type: string
+          description: "Nome em kebab-case (ex: payment-service)"
+          pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+          ui:autofocus: true
+        description:
+          title: Descrição
+          type: string
+          description: "O que este serviço faz?"
+        owner:
+          title: Team Owner
+          type: string
+          description: "Qual equipa é responsável?"
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds: [Group]
+        system:
+          title: Sistema
+          type: string
+          description: "A que sistema pertence? (ex: ecommerce, payments)"
+          default: ecommerce
+
+    - title: "⚙️ Configuração Técnica"
+      properties:
+        pythonVersion:
+          title: Versão do Python
+          type: string
+          enum: ['3.11', '3.12', '3.13']
+          default: '3.12'
+        database:
+          title: Base de Dados
+          type: string
+          enum: [none, postgres, mysql, mongodb]
+          default: none
+          description: "Incluir ORM e configuração de BD?"
+        enableRedis:
+          title: Cache Redis?
+          type: boolean
+          default: false
+        lifecycle:
+          title: Lifecycle
+          type: string
+          enum: [experimental, production]
+          default: experimental
+
+    - title: "🔗 Repositório GitHub"
+      required: [repoUrl]
+      properties:
+        repoUrl:
+          title: Localização do Repositório
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts: [github.com]
+            allowedOwners: [minha-org]
+        visibility:
+          title: Visibilidade
+          type: string
+          enum: [private, internal, public]
+          default: private
+
+    - title: "🚀 Infraestrutura"
+      properties:
+        enableKubernetes:
+          title: Incluir manifests Kubernetes?
+          type: boolean
+          default: true
+        enableTerraform:
+          title: Incluir módulo Terraform?
+          type: boolean
+          default: false
+        awsRegion:
+          title: AWS Region
+          type: string
+          default: eu-west-1
+
+  # ─── Passos de execução ───────────────────────────────────────────────────────
+  steps:
+    - id: fetch-template
+      name: "📥 Gerar código do template"
+      action: fetch:template
+      input:
+        url: ./skeleton
+        copyWithoutTemplating:
+          - .github/workflows/**
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          system: ${{ parameters.system }}
+          pythonVersion: ${{ parameters.pythonVersion }}
+          database: ${{ parameters.database }}
+          enableRedis: ${{ parameters.enableRedis }}
+          lifecycle: ${{ parameters.lifecycle }}
+          enableKubernetes: ${{ parameters.enableKubernetes }}
+          enableTerraform: ${{ parameters.enableTerraform }}
+          awsRegion: ${{ parameters.awsRegion }}
+          repoUrl: ${{ parameters.repoUrl }}
+          orgName: minha-org
+
+    - id: publish
+      name: "📤 Publicar repositório no GitHub"
+      action: publish:github
+      input:
+        allowedHosts: [github.com]
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        visibility: ${{ parameters.visibility }}
+        defaultBranch: main
+        gitAuthorName: Platform Bot
+        gitAuthorEmail: platform@empresa.com
+        repoVariables:
+          PYTHON_VERSION: ${{ parameters.pythonVersion }}
+          AWS_REGION: ${{ parameters.awsRegion }}
+        topics:
+          - python
+          - fastapi
+          - microservice
+          - platform-managed
+
+    - id: register
+      name: "📋 Registar no Software Catalog"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+    - id: create-github-environment
+      name: "🌍 Criar ambientes GitHub (staging / production)"
+      action: github:actions:dispatch
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        workflowId: setup-environments.yml
+        branchOrTagName: main
+        workflowInputs:
+          service_name: ${{ parameters.name }}
+
+  # ─── Output no portal após scaffolding ───────────────────────────────────────
+  output:
+    links:
+      - title: "🔗 Repositório GitHub"
+        url: ${{ steps.publish.output.remoteUrl }}
+        icon: github
+      - title: "📋 Ver no Catálogo"
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}
+      - title: "📖 Documentação"
+        icon: techdocs
+        entityRef: ${{ steps.register.output.entityRef }}
+    text:
+      - title: "✅ Serviço criado com sucesso!"
+        content: |
+          O teu novo microserviço **${{ parameters.name }}** foi criado:
+
+          - ✅ Repositório GitHub criado com CI/CD configurado
+          - ✅ Dockerfile multi-stage (build optimizado)
+          - ✅ GitHub Actions: lint → test → build → deploy
+          - ✅ TechDocs configurado (MkDocs)
+          - ✅ Registado no Software Catalog
+          - ✅ catalog-info.yaml com todas as anotações
+
+          **Próximo passo:** abre o repositório e faz o primeiro commit!

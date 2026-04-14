@@ -1,0 +1,32 @@
+site_name: "${{ values.name | title }}"
+site_description: "${{ values.description }}"
+site_author: "${{ values.owner }}"
+
+docs_dir: docs/
+
+# Configuração de navegação
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - API Reference: api-reference.md
+  - Architecture: architecture.md
+  - Runbooks:
+    - Deploy: runbooks/deploy.md
+    - Rollback: runbooks/rollback.md
+    - Debugging: runbooks/debugging.md
+  - Contributing: contributing.md
+
+# Plugins do MkDocs para TechDocs
+plugins:
+  - techdocs-core
+
+# Extensões Markdown
+markdown_extensions:
+  - admonition
+  - codehilite
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.details

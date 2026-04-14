@@ -1,0 +1,178 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: taskflow-api
+  title: "TaskFlow API"
+  description: "API REST de gestão de tarefas e workflows — serviço core do sistema de e-commerce"
+  tags:
+    - python
+    - fastapi
+    - postgres
+    - aws
+    - production
+  annotations:
+    # GitHub — PRs, issues e Actions visíveis no portal
+    github.com/project-slug: minha-org/taskflow-api
+
+    # TechDocs — documentação renderizada directamente no portal
+    backstage.io/techdocs-ref: dir:.
+
+    # Kubernetes — deployments visíveis por serviço
+    backstage.io/kubernetes-id: taskflow-api
+    backstage.io/kubernetes-namespace: production
+
+    # Prometheus — métricas DORA ligadas ao serviço
+    prometheus.io/rule: >-
+      max(kube_deployment_status_replicas_available{deployment="taskflow-api"})
+
+    # SonarQube — qualidade de código
+    sonarqube.org/project-key: minha-org_taskflow-api
+
+    # PagerDuty — on-call e incidentes
+    pagerduty.com/service-id: PXXXXX
+
+    # Custo estimado mensal (usado pelo cost-insights plugin)
+    cost-insights/cost-center: "platform-core"
+    cost-insights/monthly-budget-usd: "500"
+
+  links:
+    - url: https://taskflow.empresa.com
+      title: "🌐 Produção"
+      icon: web
+    - url: https://taskflow-staging.empresa.com
+      title: "🧪 Staging"
+      icon: web
+    - url: https://grafana.empresa.com/d/taskflow
+      title: "📊 Grafana Dashboard"
+      icon: dashboard
+    - url: https://runbooks.empresa.com/taskflow
+      title: "📖 Runbook"
+      icon: book
+
+spec:
+  type: service
+  lifecycle: production
+  owner: team-backend
+  system: ecommerce
+  dependsOn:
+    - resource:default/postgres-production
+    - resource:default/redis-cache
+    - component:default/auth-service
+  providesApis:
+    - taskflow-rest-api
+  consumesApis:
+    - notification-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: taskflow-rest-api
+  title: "TaskFlow REST API"
+  description: "API REST para criação, listagem e gestão de tarefas"
+  tags:
+    - rest
+    - openapi
+    - v2
+spec:
+  type: openapi
+  lifecycle: production
+  owner: team-backend
+  system: ecommerce
+  definition: |
+    openapi: "3.0.0"
+    info:
+      title: TaskFlow API
+      version: "2.1.0"
+      description: Gestão de tarefas e workflows
+      contact:
+        name: Team Backend
+        email: backend@empresa.com
+    servers:
+      - url: https://taskflow.empresa.com/api/v2
+        description: Production
+      - url: https://taskflow-staging.empresa.com/api/v2
+        description: Staging
+    paths:
+      /tasks:
+        get:
+          summary: Listar tarefas
+          tags: [tasks]
+          parameters:
+            - name: status
+              in: query
+              schema:
+                type: string
+                enum: [pending, in_progress, done]
+            - name: owner
+              in: query
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Lista de tarefas
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+        post:
+          summary: Criar tarefa
+          tags: [tasks]
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/CreateTaskRequest'
+          responses:
+            '201':
+              description: Tarefa criada
+      /tasks/{id}:
+        get:
+          summary: Obter tarefa por ID
+          tags: [tasks]
+          parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                type: string
+                format: uuid
+          responses:
+            '200':
+              description: Detalhe da tarefa
+            '404':
+              description: Tarefa não encontrada
+    components:
+      schemas:
+        Task:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+            status:
+              type: string
+              enum: [pending, in_progress, done]
+            owner:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+        CreateTaskRequest:
+          type: object
+          required: [title, owner]
+          properties:
+            title:
+              type: string
+            description:
+              type: string
+            owner:
+              type: string
+            due_date:
+              type: string
+              format: date

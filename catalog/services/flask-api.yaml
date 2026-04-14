@@ -1,0 +1,74 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: flask-api
+  title: "Flask Auth Service"
+  description: "Serviço de autenticação e autorização — JWT, OAuth2, RBAC"
+  tags:
+    - python
+    - flask
+    - auth
+    - jwt
+    - oauth2
+  annotations:
+    github.com/project-slug: minha-org/flask-api
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/kubernetes-id: flask-auth
+    backstage.io/kubernetes-namespace: production
+    prometheus.io/rule: >-
+      rate(http_requests_total{service="flask-auth"}[5m])
+    pagerduty.com/service-id: PYYYYY
+    cost-insights/cost-center: "platform-security"
+    cost-insights/monthly-budget-usd: "200"
+
+  links:
+    - url: https://auth.empresa.com
+      title: "🌐 Produção"
+      icon: web
+    - url: https://grafana.empresa.com/d/flask-auth
+      title: "📊 Grafana"
+      icon: dashboard
+
+spec:
+  type: service
+  lifecycle: production
+  owner: team-platform
+  system: ecommerce
+  dependsOn:
+    - resource:default/postgres-production
+  providesApis:
+    - auth-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: postgres-production
+  title: "PostgreSQL Production"
+  description: "Base de dados principal — RDS PostgreSQL 15"
+  tags:
+    - database
+    - postgres
+    - aws-rds
+spec:
+  type: database
+  lifecycle: production
+  owner: team-platform
+  system: ecommerce
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: redis-cache
+  title: "Redis Cache"
+  description: "Cache distribuído — ElastiCache Redis 7"
+  tags:
+    - cache
+    - redis
+    - aws
+spec:
+  type: cache
+  lifecycle: production
+  owner: team-platform
+  system: ecommerce

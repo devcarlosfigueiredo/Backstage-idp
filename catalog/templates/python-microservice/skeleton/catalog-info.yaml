@@ -1,0 +1,39 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}
+  title: "${{ values.name | title }}"
+  description: "${{ values.description }}"
+  tags:
+    - python
+    - fastapi
+    - microservice
+    {% if values.database != 'none' %}
+    - ${{ values.database }}
+    {% endif %}
+    {% if values.enableRedis %}
+    - redis
+    {% endif %}
+  annotations:
+    github.com/project-slug: ${{ values.orgName }}/${{ values.name }}
+    backstage.io/techdocs-ref: dir:.
+    backstage.io/kubernetes-id: ${{ values.name }}
+    backstage.io/kubernetes-namespace: production
+    prometheus.io/rule: >-
+      rate(http_requests_total{job="${{ values.name }}"}[5m])
+    backstage.io/source-location: url:${{ values.repoUrl }}
+    cost-insights/cost-center: "${{ values.system }}"
+
+  links:
+    - url: https://${{ values.name }}.empresa.com
+      title: "🌐 Produção"
+      icon: web
+    - url: https://grafana.empresa.com/d/${{ values.name }}
+      title: "📊 Dashboard"
+      icon: dashboard
+
+spec:
+  type: service
+  lifecycle: ${{ values.lifecycle }}
+  owner: ${{ values.owner }}
+  system: ${{ values.system }}

@@ -1,0 +1,59 @@
+app:
+  baseUrl: https://platform.empresa.com
+
+backend:
+  baseUrl: https://platform-api.empresa.com
+  listen:
+    port: 7007
+    host: 0.0.0.0
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: ${POSTGRES_PORT}
+      user: ${POSTGRES_USER}
+      password: ${POSTGRES_PASSWORD}
+      ssl:
+        require: true
+        rejectUnauthorized: true
+
+techdocs:
+  builder: 'external'
+  generator:
+    runIn: 'local'
+  publisher:
+    type: 'awsS3'
+    awsS3:
+      bucketName: ${TECHDOCS_S3_BUCKET}
+      region: eu-west-1
+      accountId: ${AWS_ACCOUNT_ID}
+
+auth:
+  environment: production
+  providers:
+    github:
+      production:
+        clientId: ${AUTH_GITHUB_CLIENT_ID}
+        clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
+
+catalog:
+  locations:
+    - type: github-discovery
+      target: https://github.com/minha-org/*/blob/main/catalog-info.yaml
+    - type: github-discovery
+      target: https://github.com/minha-org/*/blob/main/backstage.yaml
+
+# Rate limits e cache agressivos em produção
+cache:
+  store: redis
+  connection:
+    host: ${REDIS_HOST}
+    port: 6379
+    password: ${REDIS_PASSWORD}
+    tls: true
+
+reading:
+  allow:
+    - host: '*.empresa.com'
+    - host: 'github.com'
+    - host: 'raw.githubusercontent.com'

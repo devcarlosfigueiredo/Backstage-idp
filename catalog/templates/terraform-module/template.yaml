@@ -1,0 +1,96 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: terraform-module
+  title: "🏗️ Terraform Module (AWS)"
+  description: >
+    Cria um novo módulo Terraform reutilizável com estrutura padrão,
+    documentação automática (terraform-docs), testes com Terratest,
+    e integração com o registro interno de módulos.
+  tags:
+    - terraform
+    - aws
+    - infrastructure
+    - iac
+
+spec:
+  owner: team-platform
+  type: infrastructure
+
+  parameters:
+    - title: "📦 Informações do Módulo"
+      required: [name, description, owner, resourceType]
+      properties:
+        name:
+          title: Nome do Módulo
+          type: string
+          description: "Nome em kebab-case (ex: aws-rds-postgres)"
+          pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+        description:
+          title: Descrição
+          type: string
+        owner:
+          title: Team Owner
+          type: string
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds: [Group]
+        resourceType:
+          title: Tipo de Recurso AWS
+          type: string
+          enum:
+            - compute (EC2/EKS)
+            - database (RDS/ElastiCache)
+            - networking (VPC/ALB)
+            - storage (S3/EFS)
+            - security (IAM/WAF)
+            - serverless (Lambda/API Gateway)
+          default: "compute (EC2/EKS)"
+
+    - title: "🔗 Repositório"
+      required: [repoUrl]
+      properties:
+        repoUrl:
+          title: Repositório GitHub
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts: [github.com]
+            allowedOwners: [minha-org]
+
+  steps:
+    - id: fetch-template
+      name: "📥 Gerar estrutura do módulo"
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+          resourceType: ${{ parameters.resourceType }}
+
+    - id: publish
+      name: "📤 Publicar no GitHub"
+      action: publish:github
+      input:
+        allowedHosts: [github.com]
+        description: "Terraform module: ${{ parameters.description }}"
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        topics: [terraform, aws, infrastructure, module]
+
+    - id: register
+      name: "📋 Registar no Catálogo"
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+
+  output:
+    links:
+      - title: "🔗 Repositório GitHub"
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: "📋 Ver no Catálogo"
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

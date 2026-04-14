@@ -1,0 +1,135 @@
+###############################################################################
+# Helm Values — Backstage (chart oficial backstage/backstage)
+# https://backstage.github.io/charts
+###############################################################################
+
+backstage:
+  image:
+    registry: ghcr.io
+    repository: minha-org/platform-portal
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Replicas e estratégia de deploy
+  replicaCount: 2
+
+  # Variáveis de ambiente injectadas via Secrets e ConfigMaps
+  extraEnvVarsSecrets:
+    - backstage-secrets
+
+  extraEnvVars:
+    - name: NODE_ENV
+      value: production
+    - name: LOG_LEVEL
+      value: info
+    - name: AWS_REGION
+      value: eu-west-1
+
+  # Configuração de recursos
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  # Probes de saúde
+  livenessProbe:
+    httpGet:
+      path: /healthcheck
+      port: 7007
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /healthcheck
+      port: 7007
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+
+  # Affinity para distribuir pods entre AZs
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: backstage
+            topologyKey: kubernetes.io/hostname
+
+  # Tolerations para nodes dedicados
+  tolerations: []
+
+  # Node selector
+  nodeSelector:
+    role: platform
+
+# ─── Service Account (IRSA) ───────────────────────────────────────────────────
+serviceAccount:
+  create: true
+  name: backstage
+  annotations:
+    eks.amazonaws.com/role-arn: ""  # preenchido pelo Terraform
+
+# ─── Service ──────────────────────────────────────────────────────────────────
+service:
+  type: ClusterIP
+  ports:
+    backend:
+      port: 7007
+      targetPort: 7007
+
+# ─── Ingress ──────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/certificate-arn: ""  # preencher com ARN do ACM
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /healthcheck
+  hosts:
+    - host: platform.empresa.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# ─── PostgreSQL (sub-chart, apenas para dev/staging) ─────────────────────────
+postgresql:
+  enabled: false  # em produção usar RDS via Terraform
+
+# ─── ConfigMap com o app-config.yaml ─────────────────────────────────────────
+backstagePlugins: []
+
+# ─── Pod Disruption Budget ────────────────────────────────────────────────────
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# ─── HPA — autoscaling ────────────────────────────────────────────────────────
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# ─── Network Policy ───────────────────────────────────────────────────────────
+networkPolicy:
+  enabled: true
+  egressRules:
+    - ports:
+        - port: 443
+          protocol: TCP
+        - port: 5432
+          protocol: TCP
+        - port: 6379
+          protocol: TCP
