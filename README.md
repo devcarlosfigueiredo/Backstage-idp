@@ -4,7 +4,7 @@
 
 ### Internal Developer Platform powered by Backstage
 
-[![Deploy](https://github.com/minha-org/platform-portal/actions/workflows/deploy-backstage.yml/badge.svg)](https://github.com/minha-org/platform-portal/actions/workflows/deploy-backstage.yml)
+[![Deploy](https://github.com/devcarlosfigueiredo/platform-portal/actions/workflows/deploy-backstage.yml/badge.svg)](https://github.com/devcarlosfigueiredo/platform-portal/actions/workflows/deploy-backstage.yml)
 [![Catalog](https://github.com/minha-org/platform-portal/actions/workflows/validate-catalog.yml/badge.svg)](https://github.com/minha-org/platform-portal/actions/workflows/validate-catalog.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Backstage](https://img.shields.io/badge/Backstage-1.x-9bf)](https://backstage.io)
