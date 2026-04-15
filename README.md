@@ -5,7 +5,7 @@
 ### Internal Developer Platform powered by Backstage
 
 [![Deploy](https://github.com/devcarlosfigueiredo/Backstage-idp/actions/workflows/deploy-backstage.yml/badge.svg)](https://github.com/devcarlosfigueiredo/Backstage-idp/actions/workflows/deploy-backstage.yml)
-[![Catalog](https://github.com/devcarlosfigueiredo/platform-portal/actions/workflows/validate-catalog.yml/badge.svg)](https://github.com/devcarlosfigueiredo/platform-portal/actions/workflows/validate-catalog.yml)
+[![Catalog](https://github.com/devcarlosfigueiredo/Backstage-idp/actions/workflows/validate-catalog.yml/badge.svg)](https://github.com/devcarlosfigueiredo/Backstage-idp/actions/workflows/validate-catalog.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Backstage](https://img.shields.io/badge/Backstage-1.x-9bf)](https://backstage.io)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.29-326CE5?logo=kubernetes)](https://kubernetes.io)
@@ -195,7 +195,7 @@ backstage-idp/
 ### 1. Clonar e configurar
 
 ```bash
-git clone git@github.com:minha-org/platform-portal.git
+git clone git@github.com:devcarlosfigueiredo/Backstage-idp.git
 cd platform-portal
 
 # Copiar template de env
@@ -388,7 +388,7 @@ yarn add --cwd packages/backend @backstage/plugin-<nome>-backend
 
 ### Reportar problemas
 
-- 🐛 Bug: [Abrir issue](https://github.com/minha-org/platform-portal/issues/new?template=bug.md)
+- 🐛 Bug: [Abrir issue](https://github.com/devcarlosfigueiredo/Backstage-idp/issues/new?template=bug.md)
 - 💡 Feature request: [#platform-eng](https://slack.empresa.com/channels/platform-eng) no Slack
 - 📖 Docs: PR directo neste repositório
 

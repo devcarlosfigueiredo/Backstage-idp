@@ -345,14 +345,9 @@ resource "aws_iam_policy" "secrets" {
 }
 
 # ─── Helm: Deploy do Backstage ────────────────────────────────────────────────
-
-provider "helm" {
-  kubernetes {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-    token                  = data.aws_eks_cluster_auth.cluster.token
-  }
-}
+# NOTA: O provider "helm" é configurado no ficheiro providers.tf separado
+# para evitar dependências circulares com o módulo EKS.
+# Ver: helm/providers.tf
 
 resource "helm_release" "backstage" {
   name             = "backstage"
@@ -366,12 +361,17 @@ resource "helm_release" "backstage" {
 
   values = [file("${path.module}/../helm/backstage-values.yaml")]
 
+  # Em Helm provider ~> 2.12, usar set_list ou set_sensitive em vez de set {}
+  # para valores dinâmicos do Terraform
   set {
     name  = "backstage.image.tag"
     value = var.backstage_image_tag
   }
+
   set {
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = module.backstage_irsa.iam_role_arn
   }
+
+  depends_on = [module.eks]
 }
